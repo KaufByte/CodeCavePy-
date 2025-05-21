@@ -1,0 +1,25 @@
+# Python & Django
+__pycache__/
+*.py[cod]
+*.log
+*.sqlite3
+*.pot
+*.pyc
+*.pyo
+*.pyd
+media/
+staticfiles/
+local_settings.py
+*.session.sql
+
+# VSCode
+.vscode/
+
+# Env & Secrets
+.env
+.env.*
+!.env.example
+
+# venv
+venv/
+.venv/
