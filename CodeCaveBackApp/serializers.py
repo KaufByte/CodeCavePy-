@@ -132,6 +132,70 @@ from rest_framework import serializers
 from .models import Video
 
 # CodeCaveBackApp/serializers.py
+# class VideoSerializer(serializers.ModelSerializer):
+#     likedBy = serializers.SerializerMethodField(read_only=True)
+#     liked_by = serializers.PrimaryKeyRelatedField(
+#         queryset=CustomUser.objects.all(), many=True, write_only=True, required=False
+#     )
+
+#     class Meta:
+#         model  = Video
+#         fields = [
+#             "id", "title", "created_at", "preview", "video", "description",
+#             "hashtags", "likes", "timecodes", "materials", "likedBy", "liked_by","min_subscription_level"
+#         ]
+#         read_only_fields = ["id", "likes", "likedBy", "created_at"]
+
+#     def _handle_json_fields(self, validated_data, incoming):
+#         for f in ("hashtags", "timecodes", "materials"):
+#             raw = incoming.get(f)
+#             if isinstance(raw, str):
+#                 try:
+#                     validated_data[f] = json.loads(raw)
+#                 except json.JSONDecodeError:
+#                     validated_data[f] = []
+#             elif isinstance(raw, list):
+#                 validated_data[f] = raw
+
+#     def create(self, validated_data):
+#         self._handle_json_fields(validated_data, self.initial_data)
+#         return super().create(validated_data)
+
+#     def update(self, instance, validated_data):
+#         self._handle_json_fields(validated_data, self.initial_data)
+
+#         preview_f = validated_data.get("preview")
+#         video_f   = validated_data.get("video")
+
+#         if preview_f and isinstance(preview_f, UploadedFile) and instance.preview:
+#             instance.preview.delete(save=False)
+#         if video_f and isinstance(video_f, UploadedFile) and instance.video:
+#             instance.video.delete(save=False)
+
+#         liked_by_ids = validated_data.pop("liked_by", None)
+#         with transaction.atomic():
+#             obj = super().update(instance, validated_data)
+#             if liked_by_ids is not None:
+#                 obj.liked_by.set(liked_by_ids)
+#                 obj.likes = obj.liked_by.count()
+#                 obj.save(update_fields=["likes"])
+#         return obj
+
+#     def get_likedBy(self, obj):
+#         return [u.id for u in obj.liked_by.all()]
+
+#     def to_representation(self, instance):
+#         data = super().to_representation(instance)
+#         request = self.context.get("request")
+
+#         base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
+#         if instance.preview and instance.preview.url:
+#             data["preview"] = urljoin(base, instance.preview.url.lstrip("/"))
+#         if instance.video and instance.video.url:
+#             data["video"]  = urljoin(base, instance.video.url.lstrip("/"))
+#         return data
+from django.core.files.uploadedfile import UploadedFile
+
 class VideoSerializer(serializers.ModelSerializer):
     likedBy = serializers.SerializerMethodField(read_only=True)
     liked_by = serializers.PrimaryKeyRelatedField(
@@ -142,7 +206,7 @@ class VideoSerializer(serializers.ModelSerializer):
         model  = Video
         fields = [
             "id", "title", "created_at", "preview", "video", "description",
-            "hashtags", "likes", "timecodes", "materials", "likedBy", "liked_by","min_subscription_level"
+            "hashtags", "likes", "timecodes", "materials", "likedBy", "liked_by", "min_subscription_level"
         ]
         read_only_fields = ["id", "likes", "likedBy", "created_at"]
 
@@ -157,6 +221,12 @@ class VideoSerializer(serializers.ModelSerializer):
             elif isinstance(raw, list):
                 validated_data[f] = raw
 
+        # NEW — handle preview and video as URLs:
+        for file_field in ("preview", "video"):
+            val = incoming.get(file_field)
+            if isinstance(val, str) and val.startswith("http"):
+                validated_data[file_field] = val
+
     def create(self, validated_data):
         self._handle_json_fields(validated_data, self.initial_data)
         return super().create(validated_data)
@@ -164,12 +234,13 @@ class VideoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         self._handle_json_fields(validated_data, self.initial_data)
 
+        # If it’s a file upload, delete old ones
         preview_f = validated_data.get("preview")
         video_f   = validated_data.get("video")
 
-        if preview_f and isinstance(preview_f, UploadedFile) and instance.preview:
+        if isinstance(preview_f, UploadedFile) and instance.preview:
             instance.preview.delete(save=False)
-        if video_f and isinstance(video_f, UploadedFile) and instance.video:
+        if isinstance(video_f, UploadedFile) and instance.video:
             instance.video.delete(save=False)
 
         liked_by_ids = validated_data.pop("liked_by", None)
@@ -188,11 +259,18 @@ class VideoSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         request = self.context.get("request")
 
-        base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
-        if instance.preview and instance.preview.url:
+        if isinstance(instance.preview, str):
+            data["preview"] = instance.preview
+        elif instance.preview and instance.preview.url:
+            base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
             data["preview"] = urljoin(base, instance.preview.url.lstrip("/"))
-        if instance.video and instance.video.url:
-            data["video"]  = urljoin(base, instance.video.url.lstrip("/"))
+
+        if isinstance(instance.video, str):
+            data["video"] = instance.video
+        elif instance.video and instance.video.url:
+            base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
+            data["video"] = urljoin(base, instance.video.url.lstrip("/"))
+
         return data
 
 class CommentSerializer(serializers.ModelSerializer):

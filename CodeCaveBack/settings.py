@@ -158,6 +158,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',
-    'USERNAME_FIELD': 'email',  # указываем email вместо username
+    'USERNAME_FIELD': 'email',  
 }
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
