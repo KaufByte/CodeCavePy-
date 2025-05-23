@@ -47,7 +47,6 @@ class RegisterView(APIView):
         ser = RegisterSerializer(data=request.data)
         if ser.is_valid():
             user = ser.save()
-            # сразу возвращаем токены + объект пользователя
             token_ser = EmailTokenSerializer(data={
                 'email':    request.data['email'],
                 'password': request.data['password'],
@@ -71,13 +70,13 @@ class ListUsersView(generics.ListAPIView):
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    GET    /api/users/<id>/   — посмотреть
-    PATCH  /api/users/<id>/   — обновить
-    DELETE /api/users/<id>/   — удалить
+    GET    /api/users/<id>/   — проглянути
+    PATCH  /api/users/<id>/   — оновити
+    DELETE /api/users/<id>/   — видалити
     """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [AllowAny]  # или ваши
+    permission_classes = [AllowAny]  
     lookup_field = 'id'
     
 class GetUserByEmail(generics.RetrieveAPIView):
@@ -190,7 +189,6 @@ class PasswordResetView(APIView):
         except get_user_model().DoesNotExist:
             return Response({"error": "User not found"}, status=404)
 
-        # Генеруємо новий випадковий пароль
         new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
 
         
@@ -260,10 +258,10 @@ class CreateCheckoutSession(APIView):
             print("Creating Stripe checkout session...")
             session = stripe.checkout.Session.create(
                 customer=user.stripe_customer_id,
-                mode="subscription",  # 🔄 обязательно!
+                mode="subscription",  
                 line_items=[{"price": price_id, "quantity": 1}],
-                success_url="http://localhost:5173/success",
-                cancel_url="http://localhost:5173/cancel",
+                success_url="https://codecave.vercel.app/success",
+                cancel_url="https://codecave.vercel.app/cancel",
                 payment_method_types=["card"],
                 allow_promotion_codes=True,  
                 subscription_data={
@@ -374,13 +372,12 @@ class StripeWebhookView(APIView):
                     user_id = metadata.get("user_id")
                     amount = int(metadata.get("amount", "0"))
                     user = CustomUser.objects.get(id=user_id)
-                    user.balance += Decimal(amount) / Decimal("100") # в евро
+                    user.balance += Decimal(amount) / Decimal("100") 
                     user.save()
-                    print(f"✅ Баланс пополнен на {amount/100} EUR для пользователя {user.email}")
+                    print(f"✅ Баланс поповнен на {amount/100} EUR для користувача {user.email}")
                 except Exception as e:
                     print("❌ Ошибка при пополнении баланса:", e)
 
-            # 🔁 Только потом — логика подписки
             elif customer_id and session.get("subscription"):
                 try:
                     user = CustomUser.objects.get(stripe_customer_id=customer_id)
@@ -393,9 +390,9 @@ class StripeWebhookView(APIView):
                     user.subscription_price = f"{plan['amount'] / 100:.2f}"
                     user.subscription_description = plan.get('nickname', '') or plan.get('id')
                     user.save()
-                    print(f"✅ Подписка активирована для пользователя {user.email}")
+                    print(f"✅ Підписка активована для корситувача {user.email}")
                 except CustomUser.DoesNotExist:
-                    print("❌ Пользователь с таким Stripe ID не найден")
+                    print("❌ Користувач с таким Stripe ID не знайден")
 
 
         elif event['type'] == 'customer.subscription.deleted':
@@ -411,7 +408,7 @@ class StripeWebhookView(APIView):
                 user.save()
                 print(f"🔴 Подписка отменена у пользователя {user.email}")
             except CustomUser.DoesNotExist:
-                print("❌ Пользователь с таким Stripe ID не найден (отмена подписки)")
+                print("❌ Користувач с таким Stripe ID не знайден(відміна підписки)")
 
         return Response(status=200)
 
@@ -464,7 +461,7 @@ class CreateStrictSubscriptionView(APIView):
                 customer=user.stripe_customer_id,
                 items=[{"price": price_id}],
                 default_payment_method=default_pm,
-                expand=["latest_invoice"],  # ✅ safe
+                expand=["latest_invoice"], 
             )
 
             plan = subscription['items']['data'][0]['plan']
@@ -489,7 +486,7 @@ class CreateTopUpSessionView(APIView):
         amount = request.data.get("amount")
 
         try:
-            amount = int(float(amount) * 100)  # в центах
+            amount = int(float(amount) * 100) 
             if amount <= 0:
                 return Response({"error": "Invalid amount"}, status=400)
         except:
@@ -599,7 +596,6 @@ class AdminCancelSubscriptionView(APIView):
                 except Exception as e:
                     return Response({"error": f"Stripe error: {str(e)}"}, status=400)
 
-        # В любом случае — сбрасываем локально
         user.subscription_status = "canceled"
         user.subscription_name = "Free"
         user.subscription_price = "0.00"
