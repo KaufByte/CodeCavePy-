@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'CodeCaveBackApp',
     'rest_framework.authtoken',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
