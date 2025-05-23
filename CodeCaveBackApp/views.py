@@ -378,44 +378,21 @@ class StripeWebhookView(APIView):
                 except Exception as e:
                     print("❌ Ошибка при пополнении баланса:", e)
 
-            # elif customer_id and session.get("subscription"):
-            #     try:
-            #         user = CustomUser.objects.get(stripe_customer_id=customer_id)
-            #         sub = stripe.Subscription.retrieve(session["subscription"])
-            #         plan = sub['items']['data'][0]['plan']
-            #         price_id = plan['id']
-
-            #         user.subscription_status = sub.status
-            #         user.subscription_name = price_id
-            #         user.subscription_price = f"{plan['amount'] / 100:.2f}"
-            #         user.subscription_description = plan.get('nickname', '') or plan.get('id')
-            #         user.save()
-            #         print(f"✅ Підписка активована для корситувача {user.email}")
-            #     except CustomUser.DoesNotExist:
-            #         print("❌ Користувач с таким Stripe ID не знайден")
-
-            
-        elif customer_id:
+            elif customer_id and session.get("subscription"):
                 try:
                     user = CustomUser.objects.get(stripe_customer_id=customer_id)
-                    subscriptions = stripe.Subscription.list(customer=customer_id)
-                    active = next((s for s in subscriptions.auto_paging_iter() if s["status"] == "active"), None)
-                    if not active:
-                        print("❌ No active subscription found")
-                        return Response(status=200)
-
-                    plan = active['items']['data'][0]['plan']
+                    sub = stripe.Subscription.retrieve(session["subscription"])
+                    plan = sub['items']['data'][0]['plan']
                     price_id = plan['id']
 
-                    user.subscription_status = active.status
+                    user.subscription_status = sub.status
                     user.subscription_name = price_id
                     user.subscription_price = f"{plan['amount'] / 100:.2f}"
                     user.subscription_description = plan.get('nickname', '') or plan.get('id')
                     user.save()
-                    print("✅ Subscription updated for", user.email)
-                except Exception as e:
-                    print("❌ Webhook error:", e)
-
+                    print(f"✅ Підписка активована для корситувача {user.email}")
+                except CustomUser.DoesNotExist:
+                    print("❌ Користувач с таким Stripe ID не знайден")
         return Response(status=200)
 
 class DeletePaymentMethodView(APIView):
