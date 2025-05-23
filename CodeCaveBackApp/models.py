@@ -2,6 +2,8 @@ from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
+
 class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']  # теперь username — обязательное дополнительное
@@ -54,8 +56,10 @@ class Video(models.Model):
     date_ua = models.CharField(max_length=50)
     date_us = models.CharField(max_length=50)
     created_at = models.DateTimeField(default=timezone.now)
-    preview = models.ImageField(upload_to="images/")
-    video = models.FileField(upload_to="videos/")
+    # preview = models.ImageField(upload_to="images/")
+    # video = models.FileField(upload_to="videos/")
+    preview = CloudinaryField('preview', resource_type='image')
+    video = CloudinaryField('video', resource_type='video')
     description = models.TextField()
     hashtags = models.JSONField(default=list)
     likes = models.IntegerField(default=0)

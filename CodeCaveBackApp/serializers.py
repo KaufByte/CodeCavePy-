@@ -255,22 +255,27 @@ class VideoSerializer(serializers.ModelSerializer):
     def get_likedBy(self, obj):
         return [u.id for u in obj.liked_by.all()]
 
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     request = self.context.get("request")
+
+    #     if isinstance(instance.preview, str):
+    #         data["preview"] = instance.preview
+    #     elif instance.preview and instance.preview.url:
+    #         base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
+    #         data["preview"] = urljoin(base, instance.preview.url.lstrip("/"))
+
+    #     if isinstance(instance.video, str):
+    #         data["video"] = instance.video
+    #     elif instance.video and instance.video.url:
+    #         base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
+    #         data["video"] = urljoin(base, instance.video.url.lstrip("/"))
+
+    #     return data
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        request = self.context.get("request")
-
-        if isinstance(instance.preview, str):
-            data["preview"] = instance.preview
-        elif instance.preview and instance.preview.url:
-            base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
-            data["preview"] = urljoin(base, instance.preview.url.lstrip("/"))
-
-        if isinstance(instance.video, str):
-            data["video"] = instance.video
-        elif instance.video and instance.video.url:
-            base = request.build_absolute_uri("/") if request else settings.MEDIA_URL
-            data["video"] = urljoin(base, instance.video.url.lstrip("/"))
-
+        data["preview"] = str(instance.preview)
+        data["video"] = str(instance.video)
         return data
 
 class CommentSerializer(serializers.ModelSerializer):
