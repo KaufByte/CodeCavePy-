@@ -256,21 +256,28 @@ class CreateCheckoutSession(APIView):
                 print("Customer created:", customer.id)
 
             print("Creating Stripe checkout session...")
+            # session = stripe.checkout.Session.create(
+            #     customer=user.stripe_customer_id,
+            #     mode="subscription",  
+            #     line_items=[{"price": price_id, "quantity": 1}],
+            #     success_url="https://codecave.vercel.app/success",
+            #     cancel_url="https://codecave.vercel.app/cancel",
+            #     payment_method_types=["card"],
+            #     allow_promotion_codes=True,  
+            #     subscription_data={
+            #         "metadata": {"user_id": str(user.id)}
+            #     }
+            # )
             session = stripe.checkout.Session.create(
                 customer=user.stripe_customer_id,
-                mode="subscription",  
+                mode="subscription",
                 line_items=[{"price": price_id, "quantity": 1}],
                 success_url="https://codecave.vercel.app/success",
                 cancel_url="https://codecave.vercel.app/cancel",
                 payment_method_types=["card"],
-                allow_promotion_codes=True,  
-                subscription_data={
-                    "metadata": {"user_id": str(user.id)}
-                }
+                allow_promotion_codes=True,
+                expand=["subscription"],
             )
-
-
-
             print("✅ Session created:", session.id)
             return Response({"sessionId": session.id})
 
