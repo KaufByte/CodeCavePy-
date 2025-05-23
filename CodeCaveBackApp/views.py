@@ -76,7 +76,8 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated] 
+    # permission_classes = [AllowAny]  
+    permission_classes = [IsAuthenticated]
     lookup_field = 'id'
     
 class GetUserByEmail(generics.RetrieveAPIView):
