@@ -274,8 +274,8 @@ class VideoSerializer(serializers.ModelSerializer):
     #     return data
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data["preview"] = str(instance.preview)
-        data["video"] = str(instance.video)
+        data["preview"] = instance.preview.url if instance.preview else ""
+        data["video"] = instance.video.url if instance.video else ""
         return data
 
 class CommentSerializer(serializers.ModelSerializer):
