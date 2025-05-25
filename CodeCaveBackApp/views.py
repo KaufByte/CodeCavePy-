@@ -503,8 +503,8 @@ class CreateTopUpSessionView(APIView):
                     },
                     "quantity": 1,
                 }],
-                success_url="http://localhost:5173/success?type=topup",
-                cancel_url="http://localhost:5173/cancel",
+                success_url="https://codecave.vercel.app/success?type=topup",
+                cancel_url="https://codecave.vercel.app/cancel",
                 metadata={
                     "user_id": str(user.id),
                     "type": "balance_topup",
