@@ -221,12 +221,17 @@ class VideoSerializer(serializers.ModelSerializer):
             elif isinstance(raw, list):
                 validated_data[f] = raw
 
-        # NEW — handle preview and video as URLs:
+        # # NEW — handle preview and video as URLs:
+        # for file_field in ("preview", "video"):
+        #     val = incoming.get(file_field)
+        #     if isinstance(val, str) and val.startswith("http"):
+        #         validated_data[file_field] = val
         for file_field in ("preview", "video"):
-            val = incoming.get(file_field)
-            if isinstance(val, str) and val.startswith("http"):
-                validated_data[file_field] = val
-
+            # Перевіряємо: якщо файл вже є у validated_data — нічого не чіпаємо
+            if file_field not in validated_data:
+                val = incoming.get(file_field)
+                if isinstance(val, str) and val.startswith("http"):
+                    validated_data[file_field] = val     
     def create(self, validated_data):
         self._handle_json_fields(validated_data, self.initial_data)
         return super().create(validated_data)
