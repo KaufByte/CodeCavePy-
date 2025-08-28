@@ -131,7 +131,6 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "dimapyatnichenko09@gmail.com"
-EMAIL_HOST_USER = "dmitrijfriday3@gmail.com"
 EMAIL_HOST_PASSWORD = "typw qbsz asww wsgq"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
