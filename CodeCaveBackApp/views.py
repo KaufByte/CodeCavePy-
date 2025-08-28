@@ -118,7 +118,7 @@ class SupportView(APIView):
                     subject,
                     body,
                     from_email=settings.DEFAULT_FROM_EMAIL, 
-                    to=["dmitrijfriday3@gmail.com"]
+                    to=["dimapyatnichenko09@gmail.com"]
                 )
                 mail.send()
                 return Response({"success": "Message sent successfully!"}, status=200)
